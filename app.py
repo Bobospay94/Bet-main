@@ -13,7 +13,7 @@ from data_collector import get_live_odds, get_team_stats, get_available_sports
 from matrix_builder import build_payoff_matrix
 from nash_equilibrium import solve_nash_2x2
 from value_detector import compute_kelly_fraction, find_value_bets, combine_bets
-from db import get_match_details # Import de la nouvelle fonction
+from db import get_match_details, ajouter_match_historique, enregistrer_paris, get_statistiques_paris, get_paris_termines, get_performance_quotidienne, get_config # Import de la nouvelle fonction
 from recalibrator import recalibrate
 
 try:
@@ -21,20 +21,55 @@ try:
 except ImportError:
     MODE = "development"
 
+# --- Custom CSS for a cleaner look (minimalist) ---
+st.markdown("""
+<style>
+    /* General container padding */
+    .block-container {
+        padding-top: 2rem;
+        padding-right: 2rem;
+        padding-left: 2rem;
+        padding-bottom: 2rem;
+    }
+    /* Custom button style */
+    .stButton>button {
+        width: 100%;
+        border-radius: 0.5rem;
+        border: 1px solid #4CAF50; /* Green border */
+        color: #4CAF50; /* Green text */
+        background-color: white;
+        padding: 0.6rem 1rem;
+        font-size: 1rem;
+        font-weight: bold;
+    }
+    .stButton>button:hover {
+        background-color: #4CAF50; /* Green background on hover */
+        color: white;
+    }
+    /* Expander styling */
+    .stExpander {
+        border: 1px solid #ddd;
+        border-radius: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # --- Configuration de la page ---
 st.set_page_config(
     page_title="Pronostics Value Bets - Théorie des Jeux",
     page_icon="⚽",
     layout="wide"
 )
-
-st.title("⚽ Système de Pronostics - Value Bets par Théorie des Jeux")
+# --- Header ---
+st.title("⚽ Bet-main : Système de Pronostics Sportifs")
+st.markdown("---")
 st.markdown("""
-Ce système analyse les matchs de football en modélisant les choix tactiques comme un **jeu à somme nulle**.
-Il calcule l'**équilibre de Nash** pour estimer une probabilité fondamentale, puis compare aux cotes pour détecter des **value bets**.
-Le modèle se **recalibre automatiquement** après chaque match pour s'améliorer en continu.
+    Bienvenue sur votre tableau de bord de pronostics sportifs.
+    Ce système utilise la **Théorie des Jeux** et l'**Équilibre de Nash** pour estimer les probabilités de victoire,
+    détecter les **Value Bets** et optimiser les mises via le **Critère de Kelly**.
+    Le modèle se **recalibre automatiquement** pour une amélioration continue.
 """)
-
 
 def format_match_datetime(value):
     """Formate une date ISO de match pour l'affichage dans l'interface."""
@@ -80,10 +115,10 @@ def format_fcfa(value):
 init_db()
 
 # --- Barre latérale ---
-st.sidebar.header("📊 Contrôles")
+st.sidebar.title("⚙️ Configuration & Actions")
 
 # Liste des sports disponible depuis la source centralisée
-sport_map = get_available_sports()
+sport_map = get_available_sports() # Assuming this function exists and works
 sport_names = list(sport_map.keys())
 
 analysis_scope = st.sidebar.radio(
@@ -106,9 +141,9 @@ else:
 st.sidebar.header("💰 Profil de Risque")
 
 bankroll = st.sidebar.number_input(
-    "Capital total (FCFA)",
+    "Capital total (FCFA) :",
     min_value=10.0,
-    value=50.0,
+    value=1000.0, # Changed default to 1000 for more realistic Kelly calculations
     step=10.0,
 )
 
@@ -159,7 +194,7 @@ with st.sidebar.expander("📊 Résumé des paramètres"):
         """
     )
 
-    st.markdown(
+    st.sidebar.markdown(
         f"""
         **Avec {format_fcfa(bankroll)} de bankroll :**
         - Mise max simple : **{format_fcfa(bankroll * MAX_STAKE_PCT)}**
@@ -167,7 +202,7 @@ with st.sidebar.expander("📊 Résumé des paramètres"):
         """
     )
 
-# Bouton de rafraîchissement
+# --- Main Actions ---
 st.sidebar.header("🔄 Actions")
 if st.sidebar.button("🔍 Analyser les matchs du jour"):
     with st.spinner("Récupération des cotes et statistiques..."):
@@ -248,6 +283,22 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                             'strategie_B': f"Freq pressing: {q_B:.0%}",
                         }
                         
+                        # Sauvegarde dans l'historique (pour obtenir un match_id)
+                        # Note: strategies here are just placeholders, actual strategies are in p_A, q_B
+                        match_id = ajouter_match_historique(
+                            home_team=row['home_team'],
+                            away_team=row['away_team'],
+                            date_match=row.get('match_date', datetime.now().isoformat()),
+                            xg_home=team_A_stats['xG_for'],
+                            xg_away=team_B_stats['xG_for'],
+                            possession_home=team_A_stats['possession'],
+                            possession_away=team_B_stats['possession'],
+                            strategies={"A": strategies_A[0], "B": strategies_B[0]}, # Using first strategy as placeholder
+                            prob_estimee_home=prob_home,
+                            cote_home=cote_home, cote_draw=cote_draw, cote_away=cote_away
+                        )
+                        match_info['match_id'] = match_id # Store the match_id for all matches
+
                         # Détection value bet
                         if cote_home:
                             kelly = compute_kelly_fraction(prob_home, cote_home, KELLY_SIMPLE)
@@ -255,11 +306,10 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                             expected_value = (prob_home * cote_home) - 1
                             match_info['expected_value'] = expected_value
                             
-                            if expected_value > SEUIL_EV and kelly > 0.005:
+                            if expected_value > SEUIL_EV and kelly > 0.005: # Only add to bets if it's a value bet
                                 match_info['kelly_stake'] = kelly
                                 match_info['mise_conseillee'] = bankroll * kelly
                                 bets.append(match_info)
-                        match_info['match_id'] = match_id # Stocker le match_id
                         
                         all_matches_data.append(match_info)
                         
@@ -283,10 +333,10 @@ if st.sidebar.button("🔄 Recalibrer le modèle"):
             st.sidebar.error(f"Erreur lors du recalibrage : {e}")
 
 # --- Zone principale ---
+st.header("Dashboard des Pronostics")
 
-# Onglets
-tab1, tab2, tab3 = st.tabs(["📅 Matchs du jour", "📜 Historique des paris", "📊 Performance"])
-
+# Tabs
+tab1, tab2, tab3 = st.tabs(["📅 Matchs & Value Bets", "📜 Historique des Paris", "📊 Performance Globale"])
 with tab1:
     current_label = st.session_state.get('analysis_label', championnat)
     st.header(f"🔍 Analyse - {current_label}")
@@ -306,7 +356,7 @@ with tab1:
         selected_days = available_days
         if available_days:
             selected_days = st.multiselect(
-                "📆 Choisir les jours à afficher",
+                "📆 Filtrer par jour",
                 options=available_days,
                 default=available_days,
                 format_func=lambda d: d.strftime('%d/%m/%Y'),
@@ -323,12 +373,13 @@ with tab1:
         filtered_bets = [bet for bet in st.session_state.get('bets', []) if keep_selected_day(bet)]
         filtered_all_matches = [match for match in all_matches if keep_selected_day(match)]
 
-        # Afficher les value bets
+        # --- Value Bets Section ---
+        st.markdown("---")
+        st.subheader("🎯 Value Bets Détectés")
         if filtered_bets:
-            st.success(f"✅ {len(filtered_bets)} VALUE BET(s) détecté(s) sur les dates sélectionnées !")
-            
+            st.success(f"🎉 {len(filtered_bets)} Value Bet(s) prometteur(s) trouvé(s) !")
             for bet in filtered_bets:
-                with st.expander(f"⚡ [{bet.get('sport_name', 'N/A')}] {bet['match']} - EV: {bet['expected_value']:.1%}", expanded=True):
+                with st.expander(f"⚡ {bet.get('sport_name', 'N/A')} | **{bet['match']}** | EV: {bet['expected_value']:.1%}", expanded=True): # Changed title for better readability
                     col1, col2, col3 = st.columns(3)
                     
                     with col1:
@@ -348,10 +399,10 @@ with tab1:
                         st.metric("% du bankroll", f"{bet['kelly_stake']:.1%}")
                     
                     with col3:
-                        st.caption(f"Sport: {bet.get('sport_name', '-')}")
-                        st.caption(f"Stratégie optimale domicile: {bet['strategie_A']}")
-                        st.caption(f"Stratégie optimale extérieur: {bet['strategie_B']}")
-                        
+                        st.metric("Probabilité implicite (cote)", f"{bet['prob_implicite']:.1%}") # Moved prob_implicite here
+                        st.metric("Avantage estimé", f"{bet['expected_value']:.1%}") # Moved EV here
+                        st.caption(f"Stratégie Domicile: {bet['strategie_A']}") # Changed label
+                        st.caption(f"Stratégie Extérieur: {bet['strategie_B']}") # Changed label
                         # Bouton pour enregistrer le pari
                         if st.button(f"📝 Placer ce pari", key=f"bet_{bet['match']}"):
                             from db import enregistrer_paris
@@ -359,8 +410,10 @@ with tab1:
                                 match=bet['match'],
                                 prob_est=bet['prob_home'],
                                 cote=bet['cote_home'],
-                                mise=bet['mise_conseillee'],
-                                resultat="Pending"
+                                mise=bet['mise_conseillee'], # Use the actual bet type
+                                type_paris=bet['type_paris'],
+                                match_id=bet.get('match_id'),
+                                resultat="Pending" 
                             )
                             st.success("Pari enregistré !")
         else:
@@ -369,9 +422,9 @@ with tab1:
             else:
                 st.info("Aucun value bet détecté sur les jours sélectionnés.")
         
-        # Tableau de tous les matchs analysés
-        st.subheader("📋 Tous les matchs analysés")
-        if filtered_all_matches:
+        st.markdown("---")
+        st.subheader("🔗 Paris Combinés")
+        if filtered_all_matches: # This block was for "Tous les matchs analysés", but it's now moved below
             df_all = pd.DataFrame(filtered_all_matches)
             # Colonnes à afficher
             cols_display = ['sport_name', 'match_datetime_display', 'match', 'prob_home', 'cote_home', 'prob_implicite', 'expected_value', 'match_id']
@@ -394,10 +447,6 @@ with tab1:
             df_display['expected_value'] = df_display['expected_value'].apply(
                 lambda x: f"{x:.1%}" if pd.notna(x) else "-"
             )
-            df_display.columns = ['Sport', 'Date / heure', 'Match', 'Prob. estimée', 'Cote', 'Prob. implicite', 'EV', 'Match ID', 'Score Réel', 'Résultat Réel']
-            st.dataframe(df_display, use_container_width=True)
-        else:
-            st.info("Aucun match à afficher sur les jours sélectionnés.")
 
         st.markdown("---")
         st.subheader("🔗 Paris combinés")
@@ -421,7 +470,7 @@ with tab1:
                 f"{kelly_combine_used:.0%}",
             )
 
-        if st.button("🔍 Chercher des combinés"):
+        if st.button("🔍 Générer les combinés"): # Changed button label
             singles_for_combo = filtered_bets
             if len(singles_for_combo) < 2:
                 st.warning("Pas assez de paris simples rentables pour construire des combinés (minimum 2).")
@@ -432,7 +481,7 @@ with tab1:
                     max_matches=max_matches_combo,
                     kelly_fraction=kelly_combine_used,
                     bankroll=bankroll,
-                    seuil_ev=0.0,
+                    seuil_ev=0.0, # Keep all positive EV combos
                     max_results=3,
                 )
                 max_combo_stake = bankroll * MAX_STAKE_PCT * 0.5
@@ -441,39 +490,64 @@ with tab1:
                     combo['gain_potentiel'] = round(combo['mise'] * combo['cote_totale'], 2)
                 st.session_state['combined_bets'] = combos
 
-        if st.session_state.get('combined_bets'):
-            combos = st.session_state['combined_bets']
-            st.success(f"✅ {len(combos)} COMBINÉ(S) RENTABLE(S) TROUVÉ(S) !")
+        if st.session_state.get('combined_bets'): # Check if combined_bets exist
+            combos = st.session_state['combined_bets'] # Get combined bets from session state
+            st.success(f"✨ {len(combos)} Combiné(s) rentable(s) trouvé(s) !")
 
-            for idx, combo in enumerate(combos, start=1):
-                st.markdown(
-                    f"📦 **Combiné {idx}** - {combo['nb_matches']} matchs | "
-                    f"Cote: **{combo['cote_totale']:.2f}** | "
-                    f"EV: **{combo['expected_value']:.0%}** | "
-                    f"Mise: **{format_fcfa(combo['mise'])}**"
-                )
-                st.markdown(
-                    f"{combo['risk_badge']} **{combo['risk_label']}** - {combo['risk_description']}"
-                )
-                st.markdown("📋 **Sélections :**")
+            for idx, combo in enumerate(combos, start=1): # Loop through combined bets
+                with st.expander(f"📦 Combiné {idx} | Cote: **{combo['cote_totale']:.2f}** | EV: {combo['expected_value']:.0%} | Mise: {format_fcfa(combo['mise'])}", expanded=False): # Expander for each combined bet
+                    st.markdown(f"**{combo['risk_badge']} {combo['risk_label']}** : {combo['risk_description']}") # Risk profile
+                    st.markdown("---")
+                    for line_idx, selection in enumerate(combo['selections'], start=1): # Loop through selections in the combined bet
+                        st.markdown(f"- {line_idx}. **{selection.get('sport_name', '-')}**: {selection['match']} ({selection['selection']}) | Cote: {selection['cote']:.2f} | EV: +{selection['expected_value']:.0%}") # Display each selection
+                    st.markdown(f"**Gain Potentiel**: {format_fcfa(combo['gain_potentiel'])}") # Potential gain
+                    # Add a button to place combined bet (requires more complex logic for DB)
+                    # if st.button(f"📝 Placer ce combiné {idx}", key=f"combo_bet_{idx}"):
+                    #     st.info("Fonctionnalité d'enregistrement des combinés à implémenter.")
+        else:
+            st.info("Aucun combiné généré. Lancez d'abord l'analyse des matchs.")
 
-                for line_idx, selection in enumerate(combo['selections'], start=1):
-                    st.write(
-                        f"{line_idx}. [{selection.get('sport_name', '-')}] {selection['match']} "
-                        f"({selection['selection']})  | Cote: {selection['cote']:.2f} "
-                        f"| EV: +{selection['expected_value']:.0%}"
-                    )
+        # --- All Matches Table ---
+        st.markdown("---")
+        st.subheader("📋 Tous les Matchs Analysés")
+        if filtered_all_matches:
+            df_all = pd.DataFrame(filtered_all_matches)
+            # Colonnes à afficher
+            cols_display = ['sport_name', 'match_datetime_display', 'match', 'prob_home', 'cote_home', 'prob_implicite', 'expected_value', 'match_id']
+            for col in cols_display:
+                if col not in df_all.columns:
+                    df_all[col] = None
+            df_display = df_all[cols_display].copy()
 
-                st.caption(
-                    f"Cote totale: {combo['cote_totale']:.2f}  | "
-                    f"Probabilité: {combo['probabilite']:.1%}  | "
-                    f"EV: +{combo['expected_value']:.0%}"
-                )
-                st.caption(
-                    f"💰 Mise: {format_fcfa(combo['mise'])}  | "
-                    f"💸 Gain potentiel: {format_fcfa(combo['gain_potentiel'])}"
-                )
-                st.markdown("")
+            # Récupérer les scores pour tous les matchs affichés
+            df_display['score_reel'] = None
+            df_display['resultat_reel'] = None
+            for i, row in df_display.iterrows():
+                if row['match_id']:
+                    details = get_match_details(row['match_id'])
+                    df_display.loc[i, 'score_reel'] = details['score']
+                    df_display.loc[i, 'resultat_reel'] = details['resultat']
+
+            df_display['prob_home'] = df_display['prob_home'].apply(lambda x: f"{x:.1%}")
+            df_display['prob_implicite'] = df_display['prob_implicite'].apply(lambda x: f"{x:.1%}")
+            df_display['expected_value'] = df_display['expected_value'].apply(
+                lambda x: f"{x:.1%}" if pd.notna(x) else "-"
+            )
+            df_display.columns = ['Sport', 'Date / Heure', 'Match', 'Prob. Estimée', 'Cote Home', 'Prob. Implicite', 'EV', 'ID Match', 'Score Réel', 'Résultat Réel']
+            
+            # Apply conditional styling for EV
+            def highlight_ev(s):
+                if isinstance(s, str) and s.endswith('%'):
+                    val = float(s.replace('%', '').replace('+', '').replace('-', ''))
+                    if val > 0:
+                        return 'background-color: #e6ffe6; color: green;' # Light green for positive EV
+                    elif val < 0:
+                        return 'background-color: #ffe6e6; color: red;' # Light red for negative EV
+                return ''
+
+            st.dataframe(df_display.style.applymap(highlight_ev, subset=['EV']), use_container_width=True)
+        else:
+            st.info("Aucun match à afficher pour les jours sélectionnés.")
 
 with tab2:
     st.header("📜 Historique des paris placés")
@@ -482,7 +556,7 @@ with tab2:
         import sqlite3
         conn = sqlite3.connect(DB_NAME)
         df_paris = pd.read_sql_query("""
-            SELECT match_nom AS match, date_paris, prob_est, cote, mise, resultat, gain 
+            SELECT match_nom AS Match, date_paris AS Date, type_paris AS Type, prob_est AS "Prob. Estimée", cote AS Cote, mise AS Mise, resultat AS Résultat, gain AS Gain 
             FROM paris 
             ORDER BY date_paris DESC 
             LIMIT 50
@@ -493,8 +567,9 @@ with tab2:
             st.info("Aucun pari enregistré pour le moment.")
         else:
             # Formater les colonnes
-            df_paris['prob_est'] = df_paris['prob_est'].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "-")
-            df_paris['date_paris'] = pd.to_datetime(df_paris['date_paris']).dt.strftime('%d/%m/%Y %H:%M')
+            df_paris['Prob. Estimée'] = df_paris['Prob. Estimée'].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "-")
+            df_paris['Date'] = pd.to_datetime(df_paris['Date']).dt.strftime('%d/%m/%Y %H:%M')
+            # df_paris['Type'] = df_paris['Type'].apply(lambda x: x.capitalize()) # Optional: capitalize bet type
             df_paris['mise'] = df_paris['mise'].apply(format_fcfa)
             df_paris['gain'] = df_paris['gain'].apply(format_fcfa)
             
@@ -505,14 +580,7 @@ with tab2:
                 elif val == 'Loss':
                     return 'background-color: #f8d7da; color: #721c24'
                 return ''
-            
-            df_paris.columns = ['Match', 'Date', 'Prob. est.', 'Cote', 'Mise', 'Résultat', 'Gain']
-            styler = df_paris.style
-            if hasattr(styler, 'map'):
-                styler = styler.map(color_result, subset=['Résultat'])
-            else:
-                styler = styler.applymap(color_result, subset=['Résultat'])
-            st.dataframe(styler, use_container_width=True)
+            st.dataframe(df_paris.style.applymap(color_result, subset=['Résultat']), use_container_width=True)
             
     except Exception as e:
         st.error(f"Erreur lors de la lecture de l'historique : {e}")
@@ -529,33 +597,37 @@ with tab3:
         conn.close()
         
         if df_perf.empty:
-            st.info("Pas encore assez de paris terminés pour afficher des statistiques.")
+            st.info("Pas encore assez de paris terminés pour afficher les statistiques de performance.")
         else:
             col1, col2, col3, col4 = st.columns(4)
             
             nb_paris = len(df_perf)
             nb_wins = len(df_perf[df_perf['resultat'] == 'Win'])
             win_rate = nb_wins / nb_paris * 100 if nb_paris > 0 else 0
-            
+
             df_perf['profit'] = df_perf['gain'] - df_perf['mise']
             profit_total = df_perf['profit'].sum()
             roi = profit_total / df_perf['mise'].sum() * 100 if df_perf['mise'].sum() > 0 else 0
             
             with col1:
-                st.metric("Nombre de paris", nb_paris)
+                st.metric("Total Paris", nb_paris)
             with col2:
-                st.metric("Taux de réussite", f"{win_rate:.1f}%")
+                st.metric("Taux de Réussite", f"{win_rate:.1f}%")
             with col3:
-                st.metric("Profit total", format_fcfa(profit_total))
+                st.metric("Profit Net", format_fcfa(profit_total))
             with col4:
                 st.metric("ROI", f"{roi:.1f}%")
             
+            st.markdown("---")
             # Graphique d'évolution du bankroll
+            st.subheader("📈 Évolution du Bankroll")
             if nb_paris > 1:
                 st.subheader("📈 Évolution du bankroll")
                 df_perf = df_perf.sort_values('date_paris')
                 df_perf['bankroll'] = bankroll + df_perf['profit'].cumsum()
                 st.line_chart(df_perf.set_index(pd.to_datetime(df_perf['date_paris']))['bankroll'])
+            else:
+                st.info("Plus de paris sont nécessaires pour afficher l'évolution du bankroll.")
             
             # Distribution des cotes
             st.subheader("📊 Distribution des cotes jouées")
@@ -577,7 +649,7 @@ Il ne garantit pas de gains. Les paris sportifs comportent des risques. Ne jouez
 
 # --- Actualisation automatique (optionnelle) ---
 if st.checkbox("🔄 Actualisation automatique (toutes les heures)"):
-        if MODE == "production":
+        if MODE == "production": # Check if MODE is defined and equals "production"
                 st.success("Actualisation automatique activée : la page se recharge toutes les heures.")
                 st.components.v1.html(
                         """
