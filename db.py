@@ -22,13 +22,18 @@ from sqlalchemy import create_engine, text
 import streamlit as st
 
 DB_NAME = "systeme.db"
+_engine = None
 
 def get_engine():
     """
-    Crée un moteur SQLAlchemy. 
+    Récupère ou crée l'unique instance du moteur SQLAlchemy (Singleton).
     Cherche d'abord une DATABASE_URL dans les secrets (PostgreSQL), 
     sinon utilise SQLite local.
     """
+    global _engine
+    if _engine is not None:
+        return _engine
+
     db_url = None
 
     # 1. Tenter de récupérer depuis Streamlit Secrets (Cloud)
@@ -50,20 +55,30 @@ def get_engine():
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
         
-        # S'assurer que le mode SSL est activé pour Supabase
+        # S'assurer que le mode SSL est activé et forcer IPv4 si possible
         if "supabase.co" in db_url and "sslmode" not in db_url:
             separator = "&" if "?" in db_url else "?"
             db_url += f"{separator}sslmode=require"
             
-        return create_engine(
+        _engine = create_engine(
             db_url,
-            pool_pre_ping=True,
-            pool_recycle=300,
-            connect_args={"connect_timeout": 10}
+            pool_pre_ping=True,      # Vérifie si la connexion est active avant usage
+            pool_recycle=300,       # Recrée les connexions toutes les 5 min
+            pool_size=5,            # Limite le nombre de connexions simultanées
+            max_overflow=10,        # Marge de manœuvre
+            connect_args={
+                "connect_timeout": 10,
+                "keepalives": 1,
+                "keepalives_idle": 30,
+                "keepalives_interval": 10,
+                "keepalives_count": 5
+            }
         )
+        return _engine
     
     # Fallback local SQLite
-    return create_engine(f"sqlite:///{DB_NAME}")
+    _engine = create_engine(f"sqlite:///{DB_NAME}")
+    return _engine
 
 # ============================================================
 # INITIALISATION DE LA BASE DE DONNÉES
