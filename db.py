@@ -65,12 +65,29 @@ def init_db():
     """
     engine = get_engine()
 
+    # Test de connexion initial pour gérer le fallback
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+    except Exception as e:
+        # Si on n'est pas déjà sur SQLite, on tente le fallback
+        if not engine.url.drivername.startswith('sqlite'):
+            print(f"⚠️  Connexion distante échouée : {e}")
+            print("🔄 Basculement sur SQLite local (systeme.db)...")
+            engine = create_engine(f"sqlite:///{DB_NAME}")
+        else:
+            print(f"❌ Erreur critique base de données : {e}")
+            return
+
+    # Détecter si on est sur Postgres pour adapter la syntaxe des IDs
+    is_postgres = engine.url.drivername.startswith('postgresql')
+    id_type = "SERIAL PRIMARY KEY" if is_postgres else "INTEGER PRIMARY KEY AUTOINCREMENT"
     # Utilisation de SQLAlchemy pour la création initiale
     with engine.begin() as conn:
         # --- Table des coefficients tactiques ---
-        conn.execute(text('''
+        conn.execute(text(f'''
             CREATE TABLE IF NOT EXISTS coefficients (
-                id INTEGER PRIMARY KEY,
+                id {id_type},
                 bonus_ailes_pressing REAL DEFAULT 0.20,
                 bonus_ailes_bloc REAL DEFAULT 0.40,
                 bonus_axe_pressing REAL DEFAULT 0.00,
@@ -87,9 +104,9 @@ def init_db():
                          {"maj": datetime.now().isoformat()})
 
         # --- Table de l'historique des matchs ---
-        conn.execute(text('''
+        conn.execute(text(f'''
             CREATE TABLE IF NOT EXISTS matchs_historique (
-                id SERIAL PRIMARY KEY,
+                id {id_type},
                 home_team TEXT NOT NULL,
                 away_team TEXT NOT NULL,
                 date_match TEXT,
@@ -111,9 +128,9 @@ def init_db():
         '''))
 
         # --- Table des paris placés ---
-        conn.execute(text('''
+        conn.execute(text(f'''
             CREATE TABLE IF NOT EXISTS paris (
-                id SERIAL PRIMARY KEY,
+                id {id_type},
                 match_id INTEGER,
                 match_nom TEXT NOT NULL,
                 date_paris TEXT NOT NULL,
