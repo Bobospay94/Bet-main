@@ -55,14 +55,20 @@ def get_engine():
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
         
-        # S'assurer que le mode SSL est activé et forcer IPv4 si possible
+        # Optimisation pour Supabase
         if "supabase.co" in db_url and "sslmode" not in db_url:
             separator = "&" if "?" in db_url else "?"
             db_url += f"{separator}sslmode=require"
             
+        # Utiliser automatiquement le port du pooler (6543) pour Supabase
+        if "supabase.co" in db_url and ":5432/" in db_url:
+            print("🔧 Supabase détecté : basculement automatique sur le port du pooler (6543).")
+            db_url = db_url.replace(":5432/", ":6543/")
+
         _engine = create_engine(
             db_url,
             pool_pre_ping=True,      # Vérifie si la connexion est active avant usage
+            pool_use_lifo=True,      # Réutilise les connexions les plus récentes
             pool_recycle=300,       # Recrée les connexions toutes les 5 min
             pool_size=5,            # Limite le nombre de connexions simultanées
             max_overflow=10,        # Marge de manœuvre
