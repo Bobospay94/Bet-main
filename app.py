@@ -545,7 +545,7 @@ with tab1:
                         return 'background-color: #ffe6e6; color: red;' # Light red for negative EV
                 return ''
 
-            st.dataframe(df_display.style.applymap(highlight_ev, subset=['EV']), use_container_width=True)
+            st.dataframe(df_display.style.map(highlight_ev, subset=['EV']), use_container_width=True)
         else:
             st.info("Aucun match à afficher pour les jours sélectionnés.")
 
