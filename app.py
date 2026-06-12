@@ -19,7 +19,7 @@ from recalibrator import recalibrate
 try:
     from config import MODE
 except ImportError:
-    MODE = "development"
+    MODE = st.secrets.get("MODE", "production")
 
 # --- Custom CSS for a cleaner look (minimalist) ---
 st.markdown("""
@@ -279,12 +279,12 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                             'cote_away': cote_away,
                             'prob_implicite': 1/cote_home if cote_home else 0,
                             'expected_value': None,
+                            'type_paris': 'home',
                             'strategie_A': f"Freq ailes: {p_A:.0%}",
                             'strategie_B': f"Freq pressing: {q_B:.0%}",
                         }
                         
                         # Sauvegarde dans l'historique (pour obtenir un match_id)
-                        # Note: strategies here are just placeholders, actual strategies are in p_A, q_B
                         match_id = ajouter_match_historique(
                             home_team=row['home_team'],
                             away_team=row['away_team'],
@@ -293,7 +293,7 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                             xg_away=team_B_stats['xG_for'],
                             possession_home=team_A_stats['possession'],
                             possession_away=team_B_stats['possession'],
-                            strategies={"A": strategies_A[0], "B": strategies_B[0]}, # Using first strategy as placeholder
+                            strategies={"A": "ailes" if p_A >= 0.5 else "axe", "B": "pressing_haut" if q_B >= 0.5 else "bloc_bas"},
                             prob_estimee_home=prob_home,
                             cote_home=cote_home, cote_draw=cote_draw, cote_away=cote_away
                         )

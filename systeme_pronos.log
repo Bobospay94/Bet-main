@@ -1,0 +1,38 @@
+[2026-06-12 11:27:17] [INFO] 🧪 Mode test : analyse sans email
+[2026-06-12 11:27:17] [INFO] ======================================================================
+[2026-06-12 11:27:17] [INFO] 🔍 DÉBUT ANALYSE QUOTIDIENNE - 12/06/2026 11:27
+[2026-06-12 11:27:17] [INFO]    Championnat : soccer_epl
+[2026-06-12 11:27:17] [INFO] 📡 Récupération des cotes...
+[2026-06-12 11:27:18] [WARNING]    Aucun match trouvé pour aujourd'hui.
+[2026-06-12 11:27:18] [INFO] ======================================================================
+[2026-06-12 11:27:18] [INFO] 🔄 MISE À JOUR DES RÉSULTATS - 12/06/2026 11:27
+[2026-06-12 11:27:18] [INFO]    Aucun nouveau résultat à traiter.
+[2026-06-12 11:27:18] [INFO] ✅ MISE À JOUR TERMINÉE
+[2026-06-12 11:27:18] [INFO] ======================================================================
+[2026-06-12 11:27:18] [INFO] 📊 RAPPORT QUOTIDIEN - 12/06/2026 11:27
+[2026-06-12 11:27:18] [INFO] 
+╔══════════════════════════════════════════════════════╗
+║         RAPPORT QUOTIDIEN - PRONOSTICS              ║
+╚══════════════════════════════════════════════════════╝
+
+📅 Date : 12/06/2026
+
+📈 STATISTIQUES GLOBALES :
+   • Nombre total de paris : 0
+   • Paris gagnés : 0
+   • Paris perdus : 0
+   • Taux de réussite : 0%
+   • Cote moyenne gagnante : 0
+
+💰 PERFORMANCE FINANCIÈRE :
+   • Mise totale : 0.00€
+   • Gain total : 0.00€
+   • Profit net : 0.00€
+   • ROI : 0%
+
+🔧 MODÈLE :
+   • Coefficients : {'bonus_ailes_pressing': np.float64(0.2), 'bonus_ailes_bloc': np.float64(0.4), 'bonus_axe_pressing': np.float64(0.0), 'bonus_axe_bloc': np.float64(0.1), 'intercept': np.float64(0.0)}
+   • Matchs en historique : N/A
+
+══════════════════════════════════════════════════════
+        

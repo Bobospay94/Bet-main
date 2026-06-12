@@ -24,6 +24,9 @@ import os
 import random
 import hashlib
 
+# Import streamlit pour la gestion des secrets en déploiement
+import streamlit as st
+
 # Importer la fonction d'estimation depuis matrix_builder
 from matrix_builder import estimer_xg_depuis_cotes, estimer_stats_depuis_cotes
 
@@ -31,10 +34,14 @@ from matrix_builder import estimer_xg_depuis_cotes, estimer_stats_depuis_cotes
 try:
     from config import ODDS_API_KEY, FOOTBALL_API_KEY
 except ImportError:
-    ODDS_API_KEY = None
-    FOOTBALL_API_KEY = None
-    print("⚠️  Fichier config.py non trouvé. Mode démonstration activé.")
-    print("   Créez config.py avec ODDS_API_KEY pour les vraies cotes.")
+    # Fallback sur Streamlit Secrets pour le déploiement public
+    ODDS_API_KEY = st.secrets.get("ODDS_API_KEY")
+    FOOTBALL_API_KEY = st.secrets.get("FOOTBALL_API_KEY")
+    
+    if not ODDS_API_KEY:
+        ODDS_API_KEY = None
+        FOOTBALL_API_KEY = None
+        print("⚠️  Clés API non trouvées (config.py ou st.secrets). Mode démonstration activé.")
 
 # --- Cache simple pour économiser les requêtes API ---
 CACHE_DURATION = 3600  # 1 heure en secondes

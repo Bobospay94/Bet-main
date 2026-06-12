@@ -195,7 +195,7 @@ def analyser_matchs_du_jour(sport=None, envoyer_email=True):
                     xg_away=stats_away['xG_for'],
                     possession_home=stats_home['possession'],
                     possession_away=stats_away['possession'],
-                    strategies={"A": "ailes", "B": "pressing_haut"},  # Stratégie dominante
+                    strategies={"A": "ailes" if p_A >= 0.5 else "axe", "B": "pressing_haut" if q_B >= 0.5 else "bloc_bas"},
                     prob_estimee_home=prob_home,
                     cote_home=cote_home,
                     cote_draw=cote_draw,
