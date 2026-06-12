@@ -49,7 +49,18 @@ def get_engine():
         # Correction pour les URL Heroku/Supabase qui commencent par postgres://
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
-        return create_engine(db_url)
+        
+        # S'assurer que le mode SSL est activé pour Supabase
+        if "supabase.co" in db_url and "sslmode" not in db_url:
+            separator = "&" if "?" in db_url else "?"
+            db_url += f"{separator}sslmode=require"
+            
+        return create_engine(
+            db_url,
+            pool_pre_ping=True,
+            pool_recycle=300,
+            connect_args={"connect_timeout": 10}
+        )
     
     # Fallback local SQLite
     return create_engine(f"sqlite:///{DB_NAME}")
