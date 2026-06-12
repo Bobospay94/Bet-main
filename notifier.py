@@ -2,6 +2,7 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 from datetime import datetime
+import streamlit as st
 
 def send_notification(subject, body, is_html=False):
     """
@@ -10,8 +11,15 @@ def send_notification(subject, body, is_html=False):
     try:
         from config import EMAIL_FROM, EMAIL_PASSWORD, EMAIL_TO, SMTP_SERVER, SMTP_PORT
     except ImportError:
-        print("⚠️ Configuration email manquante dans config.py")
-        return False
+        # Récupération depuis les secrets Streamlit si config.py est absent
+        EMAIL_FROM = st.secrets.get("EMAIL_FROM")
+        EMAIL_PASSWORD = st.secrets.get("EMAIL_PASSWORD")
+        EMAIL_TO = st.secrets.get("EMAIL_TO")
+        SMTP_SERVER = st.secrets.get("SMTP_SERVER")
+        SMTP_PORT = st.secrets.get("SMTP_PORT")
+        
+        if not EMAIL_FROM or not EMAIL_PASSWORD:
+            return False
 
     try:
         msg = MIMEMultipart("alternative") if is_html else MIMEText(body, "plain", "utf-8")
