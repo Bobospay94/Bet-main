@@ -465,7 +465,17 @@ with tab1:
                 return True
             return item.get('match_day') in selected_days_set
 
-        filtered_bets = [bet for bet in st.session_state.get('bets', []) if keep_selected_day(bet)]
+        filtered_bets = []
+        for bet in st.session_state.get('bets', []):
+            if keep_selected_day(bet):
+                current_kelly = compute_kelly_fraction(bet['prob_home'], bet['cote_home'], KELLY_SIMPLE)
+                current_kelly = min(current_kelly, MAX_STAKE_PCT)
+                
+                updated_bet = bet.copy()
+                updated_bet['kelly_stake'] = current_kelly
+                updated_bet['mise_conseillee'] = max(90.0, bankroll * current_kelly)
+                filtered_bets.append(updated_bet)
+                
         filtered_bets.sort(key=lambda x: x.get('expected_value') if x.get('expected_value') is not None else -999, reverse=True)
         filtered_all_matches = [match for match in all_matches if keep_selected_day(match)]
         filtered_all_matches.sort(key=lambda x: x.get('expected_value') if x.get('expected_value') is not None else -999, reverse=True)
