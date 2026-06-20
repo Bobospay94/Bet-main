@@ -403,7 +403,7 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                             
                             if expected_value > SEUIL_EV and kelly > 0.005: # Only add to bets if it's a value bet
                                 match_info['kelly_stake'] = kelly
-                                match_info['mise_conseillee'] = bankroll * kelly
+                                match_info['mise_conseillee'] = max(90.0, bankroll * kelly)
                                 bets.append(match_info)
                         
                         all_matches_data.append(match_info)
@@ -598,7 +598,7 @@ with tab1:
                 )
                 max_combo_stake = bankroll * MAX_STAKE_PCT * 0.5
                 for combo in combos:
-                    combo['mise'] = min(combo['mise'], round(max_combo_stake, 2))
+                    combo['mise'] = max(90.0, min(combo['mise'], round(max_combo_stake, 2)))
                     combo['gain_potentiel'] = round(combo['mise'] * combo['cote_totale'], 2)
                 st.session_state['combined_bets'] = combos
 
