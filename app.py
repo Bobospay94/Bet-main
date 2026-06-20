@@ -446,7 +446,7 @@ with tab1:
                 for item in all_matches
                 if item.get('match_day') is not None
             }
-        )
+        )[:3]
 
         selected_days = available_days
         if available_days:
