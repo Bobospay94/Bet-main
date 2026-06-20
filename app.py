@@ -67,7 +67,7 @@ def generate_pdf(bets, all_matches, bankroll):
             pdf.set_font("Helvetica", "", 10)
             
             col_w = 45
-            pdf.cell(col_w, 6, clean_pdf_text(f"Cote : {bet['cote']:.2f}"), 0, 0)
+            pdf.cell(col_w, 6, clean_pdf_text(f"Cote : {bet.get('cote', bet.get('cote_home', 0.0)):.2f}"), 0, 0)
             pdf.cell(col_w, 6, clean_pdf_text(f"Avantage (EV) : {bet['expected_value']:.1%}"), 0, 0)
             pdf.cell(col_w, 6, clean_pdf_text(f"Mise : {bet['mise_conseillee']:,.0f} FCFA"), 0, 0)
             pdf.cell(col_w, 6, clean_pdf_text(f"Kelly : {bet['kelly_stake']:.1%}"), 0, 1)
