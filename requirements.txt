@@ -6,3 +6,4 @@ requests
 schedule
 sqlalchemy
 psycopg2-binary
+fpdf2
