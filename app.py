@@ -682,8 +682,8 @@ with tab2:
             df_paris['Prob. Estimée'] = df_paris['Prob. Estimée'].apply(lambda x: f"{x:.1%}" if pd.notna(x) else "-")
             df_paris['Date'] = pd.to_datetime(df_paris['Date']).dt.strftime('%d/%m/%Y %H:%M')
             # df_paris['Type'] = df_paris['Type'].apply(lambda x: x.capitalize()) # Optional: capitalize bet type
-            df_paris['mise'] = df_paris['mise'].apply(format_fcfa)
-            df_paris['gain'] = df_paris['gain'].apply(format_fcfa)
+            df_paris['Mise'] = df_paris['Mise'].apply(format_fcfa)
+            df_paris['Gain'] = df_paris['Gain'].apply(format_fcfa)
             
             # Colorer les résultats
             def color_result(val):
