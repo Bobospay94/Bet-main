@@ -21,6 +21,101 @@ try:
 except ImportError:
     MODE = st.secrets.get("MODE", "production")
 
+
+from fpdf import FPDF
+
+def clean_pdf_text(text):
+    if not text:
+        return ""
+    replacements = {
+        'é': 'e', 'è': 'e', 'ê': 'e', 'ë': 'e',
+        'à': 'a', 'â': 'a', 'ä': 'a',
+        'ô': 'o', 'ö': 'o',
+        'û': 'u', 'ü': 'u', 'ù': 'u',
+        'ç': 'c',
+        'É': 'E', 'È': 'E', 'À': 'A', 'Ç': 'C',
+        '⚽': '', '🎯': '', '⚡': '', '📋': '', '📦': '', '✨': '', '💰': '', '🟢': '', '🟡': '', '🔴': '', '⚙️': '', '🔄': '', '📜': '', '📊': '', '⚠️': '', '📝': ''
+    }
+    cleaned = str(text)
+    for k, v in replacements.items():
+        cleaned = cleaned.replace(k, v)
+    return cleaned.encode('latin-1', 'replace').decode('latin-1')
+
+def generate_pdf(bets, all_matches, bankroll):
+    pdf = FPDF()
+    pdf.add_page()
+    
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.cell(0, 10, clean_pdf_text("Bet-main : Rapport de Pronostics Sportifs"), 0, 1, "C")
+    pdf.set_font("Helvetica", "", 10)
+    pdf.cell(0, 8, clean_pdf_text(f"Genere le : {datetime.now().strftime('%d/%m/%Y %H:%M')}"), 0, 1, "C")
+    pdf.cell(0, 8, clean_pdf_text(f"Capital Total (Bankroll) : {bankroll:,.0f} FCFA"), 0, 1, "C")
+    pdf.ln(10)
+    
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, clean_pdf_text("1. Value Bets Detectes"), 0, 1, "L")
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(5)
+    
+    if not bets:
+        pdf.set_font("Helvetica", "I", 10)
+        pdf.cell(0, 8, clean_pdf_text("Aucun value bet detecte pour ces dates."), 0, 1, "L")
+    else:
+        for idx, bet in enumerate(bets, 1):
+            pdf.set_font("Helvetica", "B", 11)
+            pdf.cell(0, 8, clean_pdf_text(f"Pari {idx} : {bet['match']} ({bet.get('sport_name', 'N/A')})"), 0, 1, "L")
+            pdf.set_font("Helvetica", "", 10)
+            
+            col_w = 45
+            pdf.cell(col_w, 6, clean_pdf_text(f"Cote : {bet['cote']:.2f}"), 0, 0)
+            pdf.cell(col_w, 6, clean_pdf_text(f"Avantage (EV) : {bet['expected_value']:.1%}"), 0, 0)
+            pdf.cell(col_w, 6, clean_pdf_text(f"Mise : {bet['mise_conseillee']:,.0f} FCFA"), 0, 0)
+            pdf.cell(col_w, 6, clean_pdf_text(f"Kelly : {bet['kelly_stake']:.1%}"), 0, 1)
+            
+            pdf.set_font("Helvetica", "I", 9)
+            pdf.cell(0, 6, clean_pdf_text(f"Modele : {bet['strategie_A']} | {bet['strategie_B']}"), 0, 1, "L")
+            pdf.ln(3)
+            
+    pdf.ln(10)
+    
+    pdf.set_font("Helvetica", "B", 14)
+    pdf.cell(0, 10, clean_pdf_text("2. Tous les Matchs Analyses"), 0, 1, "L")
+    pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+    pdf.ln(5)
+    
+    if not all_matches:
+        pdf.set_font("Helvetica", "I", 10)
+        pdf.cell(0, 8, clean_pdf_text("Aucun match analyse."), 0, 1, "L")
+    else:
+        pdf.set_font("Helvetica", "B", 9)
+        pdf.cell(35, 8, clean_pdf_text("Sport"), 1, 0, "C")
+        pdf.cell(65, 8, clean_pdf_text("Match"), 1, 0, "C")
+        pdf.cell(30, 8, clean_pdf_text("Prob. Est."), 1, 0, "C")
+        pdf.cell(30, 8, clean_pdf_text("Cote"), 1, 0, "C")
+        pdf.cell(30, 8, clean_pdf_text("EV"), 1, 1, "C")
+        
+        pdf.set_font("Helvetica", "", 8)
+        for m in all_matches:
+            if pdf.get_y() > 270:
+                pdf.add_page()
+                pdf.set_font("Helvetica", "B", 9)
+                pdf.cell(35, 8, clean_pdf_text("Sport"), 1, 0, "C")
+                pdf.cell(65, 8, clean_pdf_text("Match"), 1, 0, "C")
+                pdf.cell(30, 8, clean_pdf_text("Prob. Est."), 1, 0, "C")
+                pdf.cell(30, 8, clean_pdf_text("Cote"), 1, 0, "C")
+                pdf.cell(30, 8, clean_pdf_text("EV"), 1, 1, "C")
+                pdf.set_font("Helvetica", "", 8)
+                
+            pdf.cell(35, 6, clean_pdf_text(m.get('sport_name', 'N/A')), 1, 0, "L")
+            pdf.cell(65, 6, clean_pdf_text(m['match']), 1, 0, "L")
+            pdf.cell(30, 6, clean_pdf_text(f"{m['prob_home']:.1%}"), 1, 0, "C")
+            pdf.cell(30, 6, clean_pdf_text(f"{m['cote_home']:.2f}" if m['cote_home'] else "-"), 1, 0, "C")
+            ev_val = m.get('expected_value')
+            ev_str = f"{ev_val:.1%}" if ev_val is not None else "-"
+            pdf.cell(30, 6, clean_pdf_text(ev_str), 1, 1, "C")
+            
+    return bytes(pdf.output())
+
 # --- Custom CSS for a cleaner look (minimalist) ---
 st.markdown("""
 <style>
@@ -371,11 +466,28 @@ with tab1:
             return item.get('match_day') in selected_days_set
 
         filtered_bets = [bet for bet in st.session_state.get('bets', []) if keep_selected_day(bet)]
+        filtered_bets.sort(key=lambda x: x.get('expected_value') if x.get('expected_value') is not None else -999, reverse=True)
         filtered_all_matches = [match for match in all_matches if keep_selected_day(match)]
+        filtered_all_matches.sort(key=lambda x: x.get('expected_value') if x.get('expected_value') is not None else -999, reverse=True)
 
         # --- Value Bets Section ---
         st.markdown("---")
-        st.subheader("🎯 Value Bets Détectés")
+        
+        col_title, col_download = st.columns([3, 1])
+        with col_title:
+            st.subheader("🎯 Value Bets Détectés")
+        with col_download:
+            try:
+                pdf_data = generate_pdf(filtered_bets, filtered_all_matches, bankroll)
+                st.download_button(
+                    label="📥 Télécharger PDF",
+                    data=pdf_data,
+                    file_name=f"Rapport_Pronostics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf",
+                    mime="application/pdf",
+                    key="download_pdf_report"
+                )
+            except Exception as e:
+                st.error(f"Erreur PDF : {e}")
         if filtered_bets:
             st.success(f"🎉 {len(filtered_bets)} Value Bet(s) prometteur(s) trouvé(s) !")
             for bet in filtered_bets:

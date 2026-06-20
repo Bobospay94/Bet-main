@@ -247,6 +247,7 @@ def analyser_matchs_du_jour(sport=None, envoyer_email=True):
         
         if bets:
             log("\n   Opportunités :")
+            bets.sort(key=lambda x: x.get('expected_value') if x.get('expected_value') is not None else -999, reverse=True)
             for i, bet in enumerate(bets, 1):
                 log(f"   {i}. {bet['match']} - Prob: {bet['prob_est']:.1%} - "
                     f"Cote: {bet['cote']:.2f} - EV: {bet['expected_value']:.1%} - "
