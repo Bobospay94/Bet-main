@@ -55,22 +55,29 @@ def get_engine():
         if db_url.startswith("postgres://"):
             db_url = db_url.replace("postgres://", "postgresql://", 1)
         
-        # Optimisation pour Supabase (Direct .co ou Pooler .com)
-        if ("supabase.co" in db_url or "supabase.com" in db_url) and "sslmode" not in db_url:
+        # S'assurer que le mode SSL est activé pour Supabase
+        if ("supabase.co" in db_url or "supabase.com" in db_url) and "sslmode=require" not in db_url:
             separator = "&" if "?" in db_url else "?"
             db_url += f"{separator}sslmode=require"
             
-        # Forcer le port 6543 si on détecte une adresse directe .co sur une IP IPv4
-        if "supabase.co" in db_url and ":5432/" in db_url:
-            print("🔧 Réseau IPv4 détecté : basculement automatique sur le port du pooler (6543).")
-            db_url = db_url.replace(":5432/", ":6543/")
+        # Afficher l'URL utilisée (sans le mot de passe)
+        display_url = db_url
+        if "@" in display_url:
+            display_url = "postgresql://postgres:********@" + display_url.split("@")[1]
+        print(f"🔗 Connexion à la base de données via : {display_url}")
+
+        # Avertissement si l'URL semble être l'endpoint IPv6-only
+        if "supabase.co" in db_url and "pooler" not in db_url and ":6543" not in db_url:
+            print("⚠️  L'URL Supabase utilisée semble être l'endpoint direct (IPv6-only).")
+            print("    Si vous êtes sur un réseau IPv4, utilisez l'URL du 'Shared Pooler' (port 6543) depuis votre tableau de bord Supabase.")
+            print("    Exemple: postgresql://user:pass@aws-0-eu-central-1.pooler.supabase.com:6543/postgres")
 
         _engine = create_engine(
             db_url,
             pool_pre_ping=True,      # Vérifie si la connexion est active avant usage
             pool_use_lifo=True,      # Réutilise les connexions les plus récentes
             pool_recycle=300,       # Recrée les connexions toutes les 5 min
-            pool_size=5,            # Limite le nombre de connexions simultanées
+            pool_size=5,            # Limite le nombre de connexions simultanées dans le pool local
             max_overflow=0,         # Important pour les poolers (PgBouncer)
             connect_args={
                 "connect_timeout": 10,
@@ -106,7 +113,9 @@ def init_db():
         if not engine.url.drivername.startswith('sqlite'):
             print(f"⚠️  Connexion distante échouée : {e}")
             print("🔄 Basculement sur SQLite local (systeme.db)...")
-            engine = create_engine(f"sqlite:///{DB_NAME}")
+            global _engine
+            _engine = create_engine(f"sqlite:///{DB_NAME}")
+            engine = _engine
         else:
             print(f"❌ Erreur critique base de données : {e}")
             return
@@ -344,7 +353,8 @@ def ajouter_match_historique(home_team, away_team, date_match, xg_home, xg_away,
                 "res": resultat, "sc": score, "src": source_stats,
                 "da": datetime.now().isoformat()
             })
-        return res.fetchone()[0]
+            inserted_id = res.fetchone()[0]
+        return inserted_id
     except Exception as e:
         print(f"❌ Erreur ajout match historique : {e}")
         return None
@@ -458,7 +468,8 @@ def enregistrer_paris(match, prob_est, cote, mise, type_paris="home",
                 "tp": type_paris, "pe": prob_est, "ct": cote, "ms": mise,
                 "res": resultat, "gn": gain, "nt": notes
             })
-        return res.fetchone()[0]
+            inserted_id = res.fetchone()[0]
+        return inserted_id
     except Exception as e:
         print(f"❌ Erreur enregistrement pari : {e}")
         return None

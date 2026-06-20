@@ -36,3 +36,267 @@
 
 ══════════════════════════════════════════════════════
         
+[2026-06-20 13:34:09] [INFO] 🧪 Mode test : analyse sans email
+[2026-06-20 13:34:09] [INFO] ======================================================================
+[2026-06-20 13:34:09] [INFO] 🔍 DÉBUT ANALYSE QUOTIDIENNE - 20/06/2026 13:34
+[2026-06-20 13:34:09] [INFO]    Championnat : soccer_epl
+[2026-06-20 13:34:09] [INFO] 📡 Récupération des cotes...
+[2026-06-20 13:34:10] [INFO]    10 matchs trouvés.
+[2026-06-20 13:34:10] [INFO]    Coefficients : ailes/pressing=0.20, ailes/bloc=0.40, axe/pressing=0.00, axe/bloc=0.10
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Arsenal vs Coventry City
+[2026-06-20 13:34:10] [INFO]       Stats Arsenal: xG=2.32, xGA=0.48, Poss=69.1%
+[2026-06-20 13:34:10] [INFO]       Stats Coventry City: xG=0.48, xGA=2.32, Poss=30.9%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [98.25%, 98.99%; 96.98%, 97.70%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Arsenal: 58.4%
+[2026-06-20 13:34:10] [INFO]       Cote Arsenal: 1.14 (prob implicite: 87.7%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-23.4% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Hull City vs Manchester United
+[2026-06-20 13:34:10] [INFO]       Stats Hull City: xG=0.71, xGA=2.09, Poss=37.0%
+[2026-06-20 13:34:10] [INFO]       Stats Manchester United: xG=2.09, xGA=0.71, Poss=63.0%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [10.98%, 16.36%; 7.22%, 8.92%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Hull City: 5.5%
+[2026-06-20 13:34:10] [INFO]       Cote Hull City: 6.72 (prob implicite: 14.9%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-44.3% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Everton vs Crystal Palace
+[2026-06-20 13:34:10] [INFO]       Stats Everton: xG=1.7, xGA=1.1, Poss=55.2%
+[2026-06-20 13:34:10] [INFO]       Stats Crystal Palace: xG=1.1, xGA=1.7, Poss=44.8%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [83.33%, 89.33%; 74.90%, 79.43%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Everton: 48.9%
+[2026-06-20 13:34:10] [INFO]       Cote Everton: 1.99 (prob implicite: 50.3%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-1.8% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Ipswich Town vs Sunderland
+[2026-06-20 13:34:10] [INFO]       Stats Ipswich Town: xG=1.38, xGA=1.42, Poss=49.6%
+[2026-06-20 13:34:10] [INFO]       Stats Sunderland: xG=1.42, xGA=1.38, Poss=50.4%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [60.44%, 71.56%; 48.13%, 54.35%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Ipswich Town: 32.5%
+[2026-06-20 13:34:10] [INFO]       Cote Ipswich Town: 2.71 (prob implicite: 36.9%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-8.4% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Nottingham Forest vs Leeds United
+[2026-06-20 13:34:10] [INFO]       Stats Nottingham Forest: xG=1.58, xGA=1.22, Poss=53.2%
+[2026-06-20 13:34:10] [INFO]       Stats Leeds United: xG=1.22, xGA=1.58, Poss=46.8%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [76.29%, 84.27%; 65.90%, 71.38%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Nottingham Forest: 43.2%
+[2026-06-20 13:34:10] [INFO]       Cote Nottingham Forest: 2.20 (prob implicite: 45.5%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-3.5% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Brentford vs Tottenham Hotspur
+[2026-06-20 13:34:10] [INFO]       Stats Brentford: xG=1.41, xGA=1.39, Poss=50.1%
+[2026-06-20 13:34:10] [INFO]       Stats Tottenham Hotspur: xG=1.39, xGA=1.41, Poss=49.9%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [63.04%, 73.78%; 50.84%, 57.05%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Brentford: 34.1%
+[2026-06-20 13:34:10] [INFO]       Cote Brentford: 2.56 (prob implicite: 39.1%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-8.9% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Brighton and Hove Albion vs Aston Villa
+[2026-06-20 13:34:10] [INFO]       Stats Brighton and Hove Albion: xG=1.55, xGA=1.25, Poss=52.6%
+[2026-06-20 13:34:10] [INFO]       Stats Aston Villa: xG=1.25, xGA=1.55, Poss=47.4%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [74.16%, 82.67%; 63.34%, 69.01%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Brighton and Hove Albion: 41.6%
+[2026-06-20 13:34:10] [INFO]       Cote Brighton and Hove Albion: 2.23 (prob implicite: 44.8%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-5.0% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Manchester City vs Bournemouth
+[2026-06-20 13:34:10] [INFO]       Stats Manchester City: xG=2.04, xGA=0.76, Poss=62.3%
+[2026-06-20 13:34:10] [INFO]       Stats Bournemouth: xG=0.76, xGA=2.04, Poss=37.7%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [94.86%, 96.93%; 91.51%, 93.38%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Manchester City: 61.1%
+[2026-06-20 13:34:10] [INFO]       Cote Manchester City: 1.43 (prob implicite: 69.9%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-8.9% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Newcastle United vs Liverpool
+[2026-06-20 13:34:10] [INFO]       Stats Newcastle United: xG=1.24, xGA=1.56, Poss=47.2%
+[2026-06-20 13:34:10] [INFO]       Stats Liverpool: xG=1.56, xGA=1.24, Poss=52.8%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [47.69%, 59.85%; 35.80%, 41.62%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Newcastle United: 24.9%
+[2026-06-20 13:34:10] [INFO]       Cote Newcastle United: 2.94 (prob implicite: 34.0%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-18.8% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+   ⚽ Analyse : Fulham vs Chelsea
+[2026-06-20 13:34:10] [INFO]       Stats Fulham: xG=1.19, xGA=1.61, Poss=46.4%
+[2026-06-20 13:34:10] [INFO]       Stats Chelsea: xG=1.61, xGA=1.19, Poss=53.6%
+[2026-06-20 13:34:10] [INFO]       Matrice gains: [43.17%, 55.34%; 31.78%, 37.30%]
+[2026-06-20 13:34:10] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:10] [INFO]       Probabilité estimée victoire Fulham: 22.3%
+[2026-06-20 13:34:10] [INFO]       Cote Fulham: 3.17 (prob implicite: 31.5%)
+[2026-06-20 13:34:10] [INFO]       ❌ Pas de value bet. EV=-20.5% (seuil: 2.0%)
+[2026-06-20 13:34:10] [INFO] 
+📊 RÉSUMÉ : 0 value bet(s) détecté(s) sur 10 matchs.
+[2026-06-20 13:34:10] [INFO] ✅ ANALYSE TERMINÉE
+[2026-06-20 13:34:10] [INFO] ======================================================================
+[2026-06-20 13:34:10] [INFO] 🔄 MISE À JOUR DES RÉSULTATS - 20/06/2026 13:34
+[2026-06-20 13:34:10] [INFO]    Aucun nouveau résultat à traiter.
+[2026-06-20 13:34:10] [INFO] ✅ MISE À JOUR TERMINÉE
+[2026-06-20 13:34:10] [INFO] ======================================================================
+[2026-06-20 13:34:10] [INFO] 📊 RAPPORT QUOTIDIEN - 20/06/2026 13:34
+[2026-06-20 13:34:10] [INFO] 
+╔══════════════════════════════════════════════════════╗
+║         RAPPORT QUOTIDIEN - PRONOSTICS              ║
+╚══════════════════════════════════════════════════════╝
+
+📅 Date : 20/06/2026
+
+📈 STATISTIQUES GLOBALES :
+   • Nombre total de paris : 0
+   • Paris gagnés : 0
+   • Paris perdus : 0
+   • Taux de réussite : 0%
+   • Cote moyenne gagnante : 0
+
+💰 PERFORMANCE FINANCIÈRE :
+   • Mise totale : 0.00€
+   • Gain total : 0.00€
+   • Profit net : 0.00€
+   • ROI : 0%
+
+🔧 MODÈLE :
+   • Coefficients : {'bonus_ailes_pressing': 0.2, 'bonus_ailes_bloc': 0.4, 'bonus_axe_pressing': 0.0, 'bonus_axe_bloc': 0.1, 'intercept': 0.0}
+   • Matchs en historique : N/A
+
+══════════════════════════════════════════════════════
+        
+[2026-06-20 13:34:56] [INFO] 🧪 Mode test : analyse sans email
+[2026-06-20 13:34:56] [INFO] ======================================================================
+[2026-06-20 13:34:56] [INFO] 🔍 DÉBUT ANALYSE QUOTIDIENNE - 20/06/2026 13:34
+[2026-06-20 13:34:56] [INFO]    Championnat : soccer_epl
+[2026-06-20 13:34:56] [INFO] 📡 Récupération des cotes...
+[2026-06-20 13:34:57] [INFO]    10 matchs trouvés.
+[2026-06-20 13:34:57] [INFO]    Coefficients : ailes/pressing=0.20, ailes/bloc=0.40, axe/pressing=0.00, axe/bloc=0.10
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Arsenal vs Coventry City
+[2026-06-20 13:34:57] [INFO]       Stats Arsenal: xG=2.32, xGA=0.48, Poss=69.1%
+[2026-06-20 13:34:57] [INFO]       Stats Coventry City: xG=0.48, xGA=2.32, Poss=30.9%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [98.25%, 98.99%; 96.98%, 97.70%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Arsenal: 58.4%
+[2026-06-20 13:34:57] [INFO]       Cote Arsenal: 1.14 (prob implicite: 87.7%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-23.4% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Hull City vs Manchester United
+[2026-06-20 13:34:57] [INFO]       Stats Hull City: xG=0.71, xGA=2.09, Poss=37.0%
+[2026-06-20 13:34:57] [INFO]       Stats Manchester United: xG=2.09, xGA=0.71, Poss=63.0%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [10.98%, 16.36%; 7.22%, 8.92%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Hull City: 5.5%
+[2026-06-20 13:34:57] [INFO]       Cote Hull City: 6.72 (prob implicite: 14.9%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-44.3% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Everton vs Crystal Palace
+[2026-06-20 13:34:57] [INFO]       Stats Everton: xG=1.7, xGA=1.1, Poss=55.2%
+[2026-06-20 13:34:57] [INFO]       Stats Crystal Palace: xG=1.1, xGA=1.7, Poss=44.8%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [83.33%, 89.33%; 74.90%, 79.43%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Everton: 48.9%
+[2026-06-20 13:34:57] [INFO]       Cote Everton: 1.99 (prob implicite: 50.3%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-1.8% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Ipswich Town vs Sunderland
+[2026-06-20 13:34:57] [INFO]       Stats Ipswich Town: xG=1.38, xGA=1.42, Poss=49.6%
+[2026-06-20 13:34:57] [INFO]       Stats Sunderland: xG=1.42, xGA=1.38, Poss=50.4%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [60.44%, 71.56%; 48.13%, 54.35%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Ipswich Town: 32.5%
+[2026-06-20 13:34:57] [INFO]       Cote Ipswich Town: 2.71 (prob implicite: 36.9%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-8.4% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Nottingham Forest vs Leeds United
+[2026-06-20 13:34:57] [INFO]       Stats Nottingham Forest: xG=1.58, xGA=1.22, Poss=53.2%
+[2026-06-20 13:34:57] [INFO]       Stats Leeds United: xG=1.22, xGA=1.58, Poss=46.8%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [76.29%, 84.27%; 65.90%, 71.38%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Nottingham Forest: 43.2%
+[2026-06-20 13:34:57] [INFO]       Cote Nottingham Forest: 2.20 (prob implicite: 45.5%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-3.5% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Brentford vs Tottenham Hotspur
+[2026-06-20 13:34:57] [INFO]       Stats Brentford: xG=1.41, xGA=1.39, Poss=50.1%
+[2026-06-20 13:34:57] [INFO]       Stats Tottenham Hotspur: xG=1.39, xGA=1.41, Poss=49.9%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [63.04%, 73.78%; 50.84%, 57.05%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Brentford: 34.1%
+[2026-06-20 13:34:57] [INFO]       Cote Brentford: 2.56 (prob implicite: 39.1%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-8.9% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Brighton and Hove Albion vs Aston Villa
+[2026-06-20 13:34:57] [INFO]       Stats Brighton and Hove Albion: xG=1.55, xGA=1.25, Poss=52.6%
+[2026-06-20 13:34:57] [INFO]       Stats Aston Villa: xG=1.25, xGA=1.55, Poss=47.4%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [74.16%, 82.67%; 63.34%, 69.01%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Brighton and Hove Albion: 41.6%
+[2026-06-20 13:34:57] [INFO]       Cote Brighton and Hove Albion: 2.23 (prob implicite: 44.8%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-5.0% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Manchester City vs Bournemouth
+[2026-06-20 13:34:57] [INFO]       Stats Manchester City: xG=2.04, xGA=0.76, Poss=62.3%
+[2026-06-20 13:34:57] [INFO]       Stats Bournemouth: xG=0.76, xGA=2.04, Poss=37.7%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [94.86%, 96.93%; 91.51%, 93.38%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Manchester City: 61.1%
+[2026-06-20 13:34:57] [INFO]       Cote Manchester City: 1.43 (prob implicite: 69.9%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-8.9% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Newcastle United vs Liverpool
+[2026-06-20 13:34:57] [INFO]       Stats Newcastle United: xG=1.24, xGA=1.56, Poss=47.2%
+[2026-06-20 13:34:57] [INFO]       Stats Liverpool: xG=1.56, xGA=1.24, Poss=52.8%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [47.69%, 59.85%; 35.80%, 41.62%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Newcastle United: 24.9%
+[2026-06-20 13:34:57] [INFO]       Cote Newcastle United: 2.94 (prob implicite: 34.0%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-18.8% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+   ⚽ Analyse : Fulham vs Chelsea
+[2026-06-20 13:34:57] [INFO]       Stats Fulham: xG=1.19, xGA=1.61, Poss=46.4%
+[2026-06-20 13:34:57] [INFO]       Stats Chelsea: xG=1.61, xGA=1.19, Poss=53.6%
+[2026-06-20 13:34:57] [INFO]       Matrice gains: [43.17%, 55.34%; 31.78%, 37.30%]
+[2026-06-20 13:34:57] [INFO]       Équilibre Nash: p(A1)=0.0%, q(B1)=100.0%
+[2026-06-20 13:34:57] [INFO]       Probabilité estimée victoire Fulham: 22.3%
+[2026-06-20 13:34:57] [INFO]       Cote Fulham: 3.17 (prob implicite: 31.5%)
+[2026-06-20 13:34:57] [INFO]       ❌ Pas de value bet. EV=-20.5% (seuil: 2.0%)
+[2026-06-20 13:34:57] [INFO] 
+📊 RÉSUMÉ : 0 value bet(s) détecté(s) sur 10 matchs.
+[2026-06-20 13:34:57] [INFO] ✅ ANALYSE TERMINÉE
+[2026-06-20 13:34:57] [INFO] ======================================================================
+[2026-06-20 13:34:57] [INFO] 🔄 MISE À JOUR DES RÉSULTATS - 20/06/2026 13:34
+[2026-06-20 13:35:01] [INFO]    Nouveaux résultats détectés. Lancement du recalibrage...
+[2026-06-20 13:35:01] [INFO] ✅ MISE À JOUR TERMINÉE
+[2026-06-20 13:35:01] [INFO] ======================================================================
+[2026-06-20 13:35:01] [INFO] 📊 RAPPORT QUOTIDIEN - 20/06/2026 13:35
+[2026-06-20 13:35:01] [INFO] 
+╔══════════════════════════════════════════════════════╗
+║         RAPPORT QUOTIDIEN - PRONOSTICS              ║
+╚══════════════════════════════════════════════════════╝
+
+📅 Date : 20/06/2026
+
+📈 STATISTIQUES GLOBALES :
+   • Nombre total de paris : 0
+   • Paris gagnés : 0
+   • Paris perdus : 0
+   • Taux de réussite : 0%
+   • Cote moyenne gagnante : 0
+
+💰 PERFORMANCE FINANCIÈRE :
+   • Mise totale : 0.00€
+   • Gain total : 0.00€
+   • Profit net : 0.00€
+   • ROI : 0%
+
+🔧 MODÈLE :
+   • Coefficients : {'bonus_ailes_pressing': 0.2, 'bonus_ailes_bloc': 0.4, 'bonus_axe_pressing': 0.0, 'bonus_axe_bloc': 0.1, 'intercept': -1.810316406250002}
+   • Matchs en historique : N/A
+
+══════════════════════════════════════════════════════
+        

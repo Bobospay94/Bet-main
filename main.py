@@ -39,7 +39,7 @@ from db import (
 from data_collector import get_live_odds, get_team_stats, update_results
 from matrix_builder import build_payoff_matrix
 from nash_equilibrium import solve_nash_2x2
-from value_detector import compute_kelly_fraction, find_value_bets
+from value_detector import compute_kelly_fraction, find_value_bets, calculate_expected_value
 from recalibrator import recalibrate
 
 # ============================================================
@@ -208,7 +208,7 @@ def analyser_matchs_du_jour(sport=None, envoyer_email=True):
                     seuil_value = float(get_config('seuil_value') or 0.02)
                     bankroll = float(get_config('bankroll') or 1000.0)
                     
-                    expected_value = (prob_home * cote_home) - 1
+                    expected_value = calculate_expected_value(prob_home, cote_home)
                     kelly = compute_kelly_fraction(prob_home, cote_home, kelly_fraction)
                     mise_conseillee = bankroll * kelly
                     

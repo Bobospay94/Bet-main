@@ -12,7 +12,7 @@ from db import init_db, get_coefficients, DB_NAME
 from data_collector import get_live_odds, get_team_stats, get_available_sports
 from matrix_builder import build_payoff_matrix
 from nash_equilibrium import solve_nash_2x2
-from value_detector import compute_kelly_fraction, find_value_bets, combine_bets
+from value_detector import compute_kelly_fraction, find_value_bets, combine_bets, calculate_expected_value
 from db import get_match_details, ajouter_match_historique, enregistrer_paris, get_statistiques_paris, get_paris_termines, get_performance_quotidienne, get_config # Import de la nouvelle fonction
 from recalibrator import recalibrate
 
@@ -303,7 +303,7 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
                         if cote_home:
                             kelly = compute_kelly_fraction(prob_home, cote_home, KELLY_SIMPLE)
                             kelly = min(kelly, MAX_STAKE_PCT)
-                            expected_value = (prob_home * cote_home) - 1
+                            expected_value = calculate_expected_value(prob_home, cote_home)
                             match_info['expected_value'] = expected_value
                             
                             if expected_value > SEUIL_EV and kelly > 0.005: # Only add to bets if it's a value bet
