@@ -41,6 +41,7 @@ from matrix_builder import build_payoff_matrix
 from nash_equilibrium import solve_nash_2x2
 from value_detector import compute_kelly_fraction, find_value_bets, calculate_expected_value
 from recalibrator import recalibrate
+from notifier import send_notification, format_html_bets
 
 # ============================================================
 # CONFIGURATION
@@ -51,14 +52,9 @@ LOG_FILE = "systeme_pronos.log"
 
 # Email (optionnel) - à configurer dans config.py
 try:
-    from config import (
-        EMAIL_FROM, EMAIL_PASSWORD, EMAIL_TO,
-        SMTP_SERVER, SMTP_PORT
-    )
-    EMAIL_ENABLED = True
+    from config import EMAIL_ENABLED
 except ImportError:
     EMAIL_ENABLED = False
-    EMAIL_FROM = None
 
 # Championnat par défaut
 SPORT_PAR_DEFAUT = "soccer_epl"
@@ -255,7 +251,7 @@ def analyser_matchs_du_jour(sport=None, envoyer_email=True):
         
         # 6. Envoi par email
         if envoyer_email and EMAIL_ENABLED and bets:
-            envoyer_email_pronostics(bets, sport)
+            send_daily_bets_email(bets, sport)
         
         log("✅ ANALYSE TERMINÉE")
         
@@ -378,7 +374,7 @@ def generer_rapport_quotidien(envoyer_email=True):
         
         # Envoyer par email
         if envoyer_email and EMAIL_ENABLED:
-            envoyer_email_rapport(rapport, stats)
+            send_notification("📊 Rapport Quotidien - Pronostics", rapport)
         
         return rapport
         
@@ -390,90 +386,15 @@ def generer_rapport_quotidien(envoyer_email=True):
 # ENVOI D'EMAILS
 # ============================================================
 
-def envoyer_email_pronostics(bets, sport):
+def send_daily_bets_email(bets, sport):
     """Envoie les value bets détectés par email."""
-    if not EMAIL_ENABLED:
-        return
+    subject = f"⚽ Pronostics Value Bets - {datetime.now().strftime('%d/%m/%Y')}"
+    body = format_html_bets(bets, sport)
     
-    try:
-        sujet = f"⚽ Pronostics Value Bets - {datetime.now().strftime('%d/%m/%Y')}"
-        
-        corps = f"""
-        <h2>🔍 Value Bets détectés - {datetime.now().strftime('%d/%m/%Y')}</h2>
-        <p>Championnat : <b>{sport}</b></p>
-        <p><b>{len(bets)} opportunité(s) trouvée(s)</b></p>
-        <hr>
-        <table border="1" cellpadding="8" cellspacing="0" style="border-collapse:collapse; width:100%">
-            <tr style="background-color:#4CAF50; color:white">
-                <th>Match</th>
-                <th>Prob. estimée</th>
-                <th>Cote</th>
-                <th>EV</th>
-                <th>Mise conseillée</th>
-                <th>Stratégie</th>
-            </tr>
-        """
-        
-        for bet in bets:
-            corps += f"""
-            <tr>
-                <td><b>{bet['match']}</b></td>
-                <td>{bet['prob_est']:.1%}</td>
-                <td>{bet['cote']:.2f}</td>
-                <td style="color:{'green' if bet['expected_value'] > 0 else 'red'}">
-                    {bet['expected_value']:.1%}
-                </td>
-                <td>{bet['mise_conseillee']:.2f}€</td>
-                <td>{bet['strategie_A']}</td>
-            </tr>
-            """
-        
-        corps += """
-        </table>
-        <hr>
-        <p><small>⚠️ Ces pronostics sont basés sur un modèle mathématique. 
-        Les paris sportifs comportent des risques. Ne misez que ce que vous pouvez perdre.</small></p>
-        """
-        
-        msg = MIMEMultipart("alternative")
-        msg["Subject"] = sujet
-        msg["From"] = EMAIL_FROM
-        msg["To"] = EMAIL_TO
-        msg.attach(MIMEText(corps, "html", "utf-8"))
-        
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_FROM, EMAIL_PASSWORD)
-            server.send_message(msg)
-        
-        log(f"📧 Email de pronostics envoyé à {EMAIL_TO}")
-        
-    except Exception as e:
-        log(f"❌ Erreur envoi email pronostics : {e}", "ERROR")
-
-
-def envoyer_email_rapport(rapport, stats):
-    """Envoie le rapport quotidien par email."""
-    if not EMAIL_ENABLED:
-        return
-    
-    try:
-        sujet = f"📊 Rapport Pronostics - {datetime.now().strftime('%d/%m/%Y')}"
-        
-        msg = MIMEText(rapport, "plain", "utf-8")
-        msg["Subject"] = sujet
-        msg["From"] = EMAIL_FROM
-        msg["To"] = EMAIL_TO
-        
-        with smtplib.SMTP(SMTP_SERVER, SMTP_PORT) as server:
-            server.starttls()
-            server.login(EMAIL_FROM, EMAIL_PASSWORD)
-            server.send_message(msg)
-        
-        log(f"📧 Rapport quotidien envoyé à {EMAIL_TO}")
-        
-    except Exception as e:
-        log(f"❌ Erreur envoi rapport : {e}", "ERROR")
+    if send_notification(subject, body, is_html=True):
+        log(f"📧 Email de pronostics envoyé avec succès.")
+    else:
+        log(f"❌ Échec de l'envoi de l'email de pronostics.", "ERROR")
 
 
 # ============================================================
