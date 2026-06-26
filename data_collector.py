@@ -422,7 +422,7 @@ def update_results():
     Vérifie les matchs sans résultat dans la base et tente de les compléter.
     
     Returns:
-        bool: True si des mises à jour ont été effectuées
+        int: Le nombre de résultats mis à jour.
     """
     try:
         conn = sqlite3.connect("systeme.db")
@@ -434,7 +434,7 @@ def update_results():
         
         if df_pending.empty:
             conn.close()
-            return False
+            return 0
 
         updated_count = 0
         
@@ -496,10 +496,10 @@ def update_results():
 
         conn.commit()
         conn.close()
-        return updated_count > 0
+        return updated_count
     except Exception as e:
         print(f"❌ Erreur mise à jour résultats : {e}")
-        return False
+        return 0
 
 
 def _fetch_match_result(home_team, away_team, match_date):

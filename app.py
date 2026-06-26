@@ -14,7 +14,7 @@ from matrix_builder import build_payoff_matrix
 from nash_equilibrium import solve_nash_2x2
 from value_detector import compute_kelly_fraction, find_value_bets, combine_bets, calculate_expected_value
 from db import get_match_details, ajouter_match_historique, enregistrer_paris, get_statistiques_paris, get_paris_termines, get_performance_quotidienne, get_config # Import de la nouvelle fonction
-from recalibrator import recalibrate
+from data_collector import update_results, clear_cache, get_available_sports
 
 try:
     from config import MODE
@@ -40,7 +40,7 @@ def clean_pdf_text(text):
     for k, v in replacements.items():
         cleaned = cleaned.replace(k, v)
     return cleaned.encode('latin-1', 'replace').decode('latin-1')
-
+    
 def generate_pdf(bets, all_matches, bankroll):
     pdf = FPDF()
     pdf.add_page()
@@ -418,20 +418,30 @@ if st.sidebar.button("🔍 Analyser les matchs du jour"):
         except Exception as e:
             st.error(f"Erreur lors de la récupération des données : {str(e)}")
             st.info("Vérifiez vos clés API dans config.py ou utilisez les données de démonstration.")
-
-if st.sidebar.button("🔄 Recalibrer le modèle"):
-    with st.spinner("Recalibrage en cours à partir de l'historique..."):
+            
+if st.sidebar.button("🔄 Mettre à jour les résultats"):
+    with st.spinner("Vérification des résultats des matchs terminés..."):
         try:
-            recalibrate()
-            st.sidebar.success("✅ Modèle recalibré avec succès !")
+            # Vider le cache pour forcer la récupération de nouvelles données
+            clear_cache()
+            
+            # Mettre à jour les résultats
+            updated_count = update_results()
+            
+            if updated_count > 0:
+                st.sidebar.success(f"✅ {updated_count} résultat(s) mis à jour !")
+                st.rerun() # Recharger la page pour afficher les scores
+            else:
+                st.sidebar.info("ℹ️ Aucun nouveau résultat à mettre à jour.")
+                
         except Exception as e:
-            st.sidebar.error(f"Erreur lors du recalibrage : {e}")
+            st.sidebar.error(f"Erreur lors de la mise à jour : {e}")
 
 # --- Zone principale ---
 st.header("Dashboard des Pronostics")
 
 # Tabs
-tab1, tab2, tab3 = st.tabs(["📅 Matchs & Value Bets", "📜 Historique des Paris", "📊 Performance Globale"])
+tab1, tab2, tab3, tab4 = st.tabs(["📅 Matchs & Value Bets", "📜 Historique des Paris", "📊 Performance Globale", "🛠️ Modèle & Calibration"])
 with tab1:
     current_label = st.session_state.get('analysis_label', championnat)
     st.header(f"🔍 Analyse - {current_label}")
@@ -761,6 +771,54 @@ with tab3:
             
     except Exception as e:
         st.error(f"Erreur lors du calcul des performances : {e}")
+
+with tab4:
+    from recalibrator import recalibrate, cross_validate, get_recalibration_report
+    
+    st.header("🛠️ Gestion et Évaluation du Modèle")
+    st.markdown("""
+    Cette section vous permet de gérer le cycle de vie de votre modèle prédictif.
+    - **Recalibrer** : Ajuste les coefficients du modèle en utilisant tous les matchs passés pour améliorer sa précision.
+    - **Validation Croisée** : Évalue la robustesse du modèle en le testant sur des données qu'il n'a jamais vues. Un bon score ici indique que le modèle se généralise bien.
+    """)
+
+    st.markdown("---")
+    col1, col2 = st.columns(2)
+
+    with col1:
+        st.subheader("🔄 Recalibrage du Modèle")
+        if st.button("Lancer le recalibrage"):
+            with st.spinner("Recalibrage en cours..."):
+                try:
+                    result = recalibrate(method='auto', verbose=False)
+                    if result.get('success'):
+                        st.success("✅ Modèle recalibré avec succès !")
+                        st.rerun()
+                    else:
+                        st.error(f"Échec du recalibrage : {result.get('raison', 'Erreur inconnue')}")
+                except Exception as e:
+                    st.error(f"Erreur : {e}")
+
+    with col2:
+        st.subheader("🔬 Validation Croisée (Cross-Validation)")
+        if st.button("Évaluer la robustesse du modèle"):
+            with st.spinner("Validation croisée en cours (peut prendre un moment)..."):
+                try:
+                    cv_results = cross_validate(n_folds=5, method='auto', verbose=False)
+                    if cv_results:
+                        st.session_state['cv_results'] = cv_results
+                    else:
+                        st.warning("Pas assez de données pour la validation croisée.")
+                except Exception as e:
+                    st.error(f"Erreur : {e}")
+
+    if 'cv_results' in st.session_state:
+        st.markdown("---")
+        st.subheader("Résultats de la Validation Croisée")
+        cv = st.session_state['cv_results']
+        st.metric("Taux de réussite moyen (Accuracy)", f"{cv['accuracy_mean']:.1%} ± {cv['accuracy_std']:.1%}")
+        st.metric("Score Brier moyen", f"{cv['brier_mean']:.4f} ± {cv['brier_std']:.4f}", help="Erreur quadratique moyenne. Plus c'est proche de 0, mieux c'est.")
+        st.info("Ces métriques montrent comment le modèle se comporterait sur de nouvelles données. Un taux de réussite stable et un score Brier faible sont de bons signes.")
 
 # --- Pied de page ---
 st.markdown("---")

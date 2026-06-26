@@ -456,6 +456,18 @@ def enregistrer_paris(match, prob_est, cote, mise, type_paris="home",
         int: l'ID du pari inséré
     """
     try:
+        # Vérification pour éviter les doublons
+        with get_engine().connect() as conn:
+            existing_bet = conn.execute(text("""
+                SELECT id FROM paris 
+                WHERE match_id = :mid AND type_paris = :tp AND resultat = 'Pending'
+            """), {"mid": match_id, "tp": type_paris}).fetchone()
+            
+            if existing_bet:
+                print(f"⚠️  Pari pour le match {match_id} ({type_paris}) déjà en attente. Annulation de l'enregistrement.")
+                return None
+
+        # Insertion si aucun doublon n'est trouvé
         with get_engine().begin() as conn:
             res = conn.execute(text('''
             INSERT INTO paris 

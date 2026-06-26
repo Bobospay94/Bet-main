@@ -169,61 +169,6 @@ def predict_proba(features, params):
     return sigmoid(z)
 
 
-def log_likelihood(params, features, y):
-    """
-    Calcule la log-vraisemblance négative (à minimiser).
-    
-    LL = sum(y_i * log(p_i) + (1-y_i) * log(1-p_i))
-    
-    Args:
-        params: vecteur des paramètres [bonus_ailes_pressing, bonus_ailes_bloc,
-                bonus_axe_pressing, bonus_axe_bloc, intercept]
-        features: matrice n×5 ou n×1 selon le mode
-        y: vecteur cible (0 ou 1)
-    
-    Returns:
-        float: négatif de la log-vraisemblance (à minimiser)
-    """
-    # Reconstruire le dict des paramètres
-    if len(params) == 5:
-        coeffs = {
-            'bonus_ailes_pressing': params[0],
-            'bonus_ailes_bloc': params[1],
-            'bonus_axe_pressing': params[2],
-            'bonus_axe_bloc': params[3],
-            'intercept': params[4]
-        }
-        # Si features est juste la diff_xg, on l'utilise directement
-        # Sinon on recalcule avec les nouveaux bonus
-        if features.ndim == 1:
-            diff_xg_adj = features
-        else:
-            # Recalculer avec les nouveaux bonus
-            diff_xg_adj = features[:, 0]  # xg_home - xg_away de base
-            # Ajouter les bonus selon les stratégies (stockées dans features)
-            for i in range(len(diff_xg_adj)):
-                strat_cols = features[i, 1:]  # colonnes indicatrices des stratégies
-                # Cette partie dépend de l'encodage des stratégies
-                pass
-    else:
-        # Mode simple : params = [intercept]
-        coeffs = {'intercept': params[0]}
-        diff_xg_adj = features
-    
-    # Calcul des probabilités
-    probs = predict_proba(diff_xg_adj, coeffs)
-    
-    # Éviter les log(0)
-    epsilon = 1e-15
-    probs = np.clip(probs, epsilon, 1 - epsilon)
-    
-    # Log-vraisemblance
-    ll = y * np.log(probs) + (1 - y) * np.log(1 - probs)
-    
-    # Retourner le négatif (car on minimise)
-    return -np.sum(ll)
-
-
 def log_likelihood_simple(params, features, y):
     """
     Version simplifiée pour le recalibrage avec un seul paramètre (intercept).
@@ -357,16 +302,24 @@ def optimize_coefficients(df, y, initial_coeffs, method='auto', verbose=True):
     nb_matchs = len(df)
     
     if method == 'auto':
-        # Si moins de 20 matchs, on optimise seulement l'intercept
-        # Sinon on optimise tous les coefficients
-        if nb_matchs < 20:
+        # Vérifier la diversité des stratégies dans l'historique
+        strategy_counts = df.groupby(['strat_A', 'strat_B']).size()
+        is_diverse = len(strategy_counts) >= 3 and strategy_counts.min() >= 2
+
+        # Si moins de 20 matchs OU pas assez de diversité, on optimise seulement l'intercept.
+        # Sinon, on optimise tous les coefficients.
+        if nb_matchs < 20 or not is_diverse:
             method = 'simple'
             if verbose:
-                print(f"\n📋 Méthode automatique → 'simple' (seulement {nb_matchs} matchs)")
+                reason = f"seulement {nb_matchs} matchs" if nb_matchs < 20 else "stratégies peu variées"
+                print(f"\n📋 Méthode automatique → 'simple' ({reason})")
         else:
             method = 'full'
             if verbose:
                 print(f"\n📋 Méthode automatique → 'full' ({nb_matchs} matchs)")
+    
+    if verbose:
+        print(f"   Nombre de matchs utilisés : {nb_matchs}")
     
     if method == 'simple':
         return _optimize_intercept_only(xg_diff, y, initial_coeffs, verbose)
@@ -444,7 +397,7 @@ def _optimize_all_coefficients(df, y, initial_coeffs, xg_diff, verbose=True):
     """
     
     if verbose:
-        print("\n🔧 Optimisation de tous les coefficients...")
+        print("\n🔧 Optimisation de tous les coefficients (bonus tactiques + intercept)...")
     
     # Paramètres initiaux [bonus_ailes_pressing, bonus_ailes_bloc, 
     #                     bonus_axe_pressing, bonus_axe_bloc, intercept]
@@ -465,7 +418,7 @@ def _optimize_all_coefficients(df, y, initial_coeffs, xg_diff, verbose=True):
         (-1.0, 1.0)    # intercept
     ]
     
-    def objective(params):
+    def objective(params, lambda_reg=0.01):
         """Fonction objectif qui recalcule les features avec les nouveaux bonus."""
         coeffs = {
             'bonus_ailes_pressing': params[0],
@@ -494,7 +447,11 @@ def _optimize_all_coefficients(df, y, initial_coeffs, xg_diff, verbose=True):
         probs = np.clip(probs, epsilon, 1 - epsilon)
         
         ll = y.values * np.log(probs) + (1 - y.values) * np.log(1 - probs)
-        return -np.sum(ll)
+        
+        # Pénalité de régularisation L2 (sauf pour l'intercept)
+        l2_penalty = lambda_reg * np.sum(params[:-1]**2)
+        
+        return -np.sum(ll) + l2_penalty
     
     # Optimisation
     try:
@@ -570,7 +527,7 @@ def _optimize_all_coefficients(df, y, initial_coeffs, xg_diff, verbose=True):
 # 4. ÉVALUATION DU MODÈLE
 # ============================================================
 
-def evaluate_model(df, y, coefficients, verbose=True):
+def evaluate_model(df, y, coefficients, verbose=True, xg_diff_base=None):
     """
     Évalue la performance du modèle après recalibrage.
     
@@ -584,6 +541,7 @@ def evaluate_model(df, y, coefficients, verbose=True):
         df: DataFrame
         y: cible réelle
         coefficients: nouveaux coefficients
+        xg_diff_base: Différence de xG pré-calculée (optimisation)
         verbose: affichage
     
     Returns:
@@ -591,17 +549,21 @@ def evaluate_model(df, y, coefficients, verbose=True):
     """
     
     # Prédictions
-    predictions = []
-    for _, row in df.iterrows():
-        bonus = calculer_bonus_tactique(
-            row.get('strat_A', 'ailes'),
-            row.get('strat_B', 'pressing_haut'),
-            coefficients
-        )
-        diff_adj = row['xg_home'] - row['xg_away'] + bonus
-        z = diff_adj + coefficients.get('intercept', 0)
-        prob = sigmoid(z)
-        predictions.append(prob)
+    if xg_diff_base is not None:
+        # Mode simple, plus rapide
+        z = xg_diff_base + coefficients.get('intercept', 0)
+        predictions = sigmoid(z)
+    else:
+        # Mode complet, nécessite de recalculer les bonus
+        predictions = []
+        for _, row in df.iterrows():
+            bonus = calculer_bonus_tactique(
+                row.get('strat_A', 'ailes'), row.get('strat_B', 'pressing_haut'), coefficients
+            )
+            diff_adj = row['xg_home'] - row['xg_away'] + bonus
+            z = diff_adj + coefficients.get('intercept', 0)
+            prob = sigmoid(z)
+            predictions.append(prob)
     
     predictions = np.array(predictions)
     y_true = y.values
@@ -655,7 +617,7 @@ def evaluate_model(df, y, coefficients, verbose=True):
 # 5. VALIDATION CROISÉE
 # ============================================================
 
-def cross_validate(n_folds=5, verbose=True):
+def cross_validate(n_folds=5, method='auto', verbose=True):
     """
     Validation croisée pour évaluer la robustesse du modèle.
     
@@ -674,6 +636,10 @@ def cross_validate(n_folds=5, verbose=True):
         return None
     
     df = extract_strategies(df)
+    
+    # Si la méthode est 'auto', on la détermine une seule fois sur l'ensemble des données
+    if method == 'auto':
+        method = 'full' if len(df) >= 20 and df.groupby(['strat_A', 'strat_B']).size().min() >= 2 else 'simple'
     
     # Mélanger les données
     indices = np.random.permutation(len(df))
@@ -702,13 +668,11 @@ def cross_validate(n_folds=5, verbose=True):
         
         # Entraînement sur le pli
         initial_coeffs = get_coefficients()
-        result = optimize_coefficients(df_train, y_train, initial_coeffs, 
-                                        method='simple', verbose=False)
+        result = optimize_coefficients(df_train, y_train, initial_coeffs, method=method, verbose=False)
         
         if result['success']:
             # Évaluation sur le test
-            eval_result = evaluate_model(df_test, y_test, 
-                                         result['coefficients'], verbose=False)
+            eval_result = evaluate_model(df_test, y_test, result['coefficients'], verbose=False)
             
             metrics['accuracy'].append(eval_result['accuracy'])
             metrics['brier_score'].append(eval_result['brier_score'])
@@ -719,13 +683,12 @@ def cross_validate(n_folds=5, verbose=True):
                       f"brier={eval_result['brier_score']:.4f}")
     
     if verbose and metrics['accuracy']:
-        print("-" * 40)
-        print(f"   Moyenne accuracy : {np.mean(metrics['accuracy']):.1%} "
-              f"(±{np.std(metrics['accuracy']):.1%})")
-        print(f"   Moyenne Brier : {np.mean(metrics['brier_score']):.4f} "
-              f"(±{np.std(metrics['brier_score']):.4f})")
-        print(f"   Moyenne Log-loss : {np.mean(metrics['log_loss']):.4f} "
-              f"(±{np.std(metrics['log_loss']):.4f})")
+        print("-" * 60)
+        print(f"   📊 RÉSULTATS MOYENS (méthode '{method}')")
+        print(f"   Accuracy : {np.mean(metrics['accuracy']):.1%} (±{np.std(metrics['accuracy']):.1%})")
+        print(f"   Brier    : {np.mean(metrics['brier_score']):.4f} (±{np.std(metrics['brier_score']):.4f})")
+        print(f"   Log-loss : {np.mean(metrics['log_loss']):.4f} (±{np.std(metrics['log_loss']):.4f})")
+        print("-" * 60)
     
     return {
         'accuracy_mean': np.mean(metrics['accuracy']) if metrics['accuracy'] else 0,
